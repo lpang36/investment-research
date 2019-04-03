@@ -1,5 +1,6 @@
 from keras.models import Sequential
-from keras.layers import LSTM
+from keras.layers import LSTM, Dense, Activation
+from keras.optimizers import SGD
 import numpy as np
 import pandas
 import warnings
@@ -50,22 +51,23 @@ def train(df,ticker=None,oneFlag=False,specFlag=False,column='close.day',sample=
 			new_row = np.reshape(ticker.as_matrix(),(1,-1))
 			zeros = np.zeros((1,max-np.shape(new_row)[1]))
 			input = np.concatenate((input,np.concatenate((zeros,new_row),1)),0)
-	print(np.shape(input))
+	#print(np.shape(input))
 	input = np.reshape(input,(np.shape(input)[0],np.shape(input)[1],1))
 	timesteps = np.shape(input)[1]
 	train_size = int(timesteps*0.75)
 	model = Sequential()
-	model.add(LSTM(32,return_sequences=True,input_shape=(None,1)))
-	model.add(LSTM(32,return_sequences=True))
-	model.add(LSTM(data_dim,return_sequences=True))
+	#model.add(LSTM(32,return_sequences=True,input_shape=(None,1),batch_input_shape=(1,None,1),stateful=True))
+	#model.add(LSTM(32,return_sequences=True,stateful=True))
+	model.add(Dense(1,activation=Activation("relu"),input_shape=(None,1)))
+	#model.add(LSTM(data_dim,return_sequences=True))
 	model.compile(loss='mean_squared_error',
-              optimizer='rmsprop',
+              optimizer=SGD(lr=0.01),
               metrics=['accuracy'])
 	x_train = input[:,0:train_size-1,:]
 	y_train = input[:,1:train_size,:]
 	x_val = input[:,0:timesteps-1,:]
 	y_val = input[:,1:timesteps,:]
-	model.fit(x_train,y_train,batch_size=32,epochs=10,validation_data=(x_val,y_val))
+	model.fit(x_train,y_train,batch_size=1,epochs=10,validation_data=(x_val,y_val),verbose=1)
 	
 df = load_all("/home/lpang/Documents/GitHub/InvestmentResearch/Data/periods.csv")
-train(df)
+train(df,sample=8)

@@ -1,3 +1,6 @@
 Data/
 data/
 *.Rhistory
+src/token.txt
+src/fetch_prices/*
+!src/fetch_prices/fetch_prices.py
